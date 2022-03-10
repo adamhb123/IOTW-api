@@ -1,10 +1,12 @@
+require('dotenv').config();
+
 const express = require("express");
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const fileUpload = require('express-fileupload');
 
-const port = 3000;
+const port = process.env.iotw_api_port;
 const path = __dirname; 
 
 app.use(cors());
@@ -18,3 +20,5 @@ app.use(require('./routes.ts'));
 app.listen(port, () => {
  console.log(`Server running on port ${port}`);
 });
+
+module.exports = {express: express}

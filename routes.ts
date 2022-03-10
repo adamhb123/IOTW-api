@@ -1,13 +1,11 @@
-require('dotenv').config();
-const express = require("express");
-const router = express.Router();
+const router = require('express').Router();
 const mysql = require('mysql2');
 
 //mysql connection
 const conn = mysql.createConnection({
-    host: process.env.mysql_host,
-    user: process.env.mysql_user,
-    password: process.env.mysql_password,
+    host: process.env.iotw_mysql_host,
+    user: process.env.iotw_mysql_user,
+    password: process.env.iotw_mysql_password,
     database: "iotw"
 });
 
@@ -21,11 +19,26 @@ e.g. within certain time range, within certain upvote range, etc.
 
 */
 
+/** API ROUTE DEFINITION
+ * METHOD:              GET
+ * NAME:                'pictures'
+ * QUERY PARAMETERS:
+ *      order={0, 1} : Order of the pictures (by date)
+ *          0: Newest to oldest
+ *          1: Oldest to newest  
+ * RETURN: A set of JSON objects, each representing a single image,
+ *         constructed as follows 
+ *         FORMAT: varname | type in db | type in json : description
+ *         {
+ *              userID | VARCHAR(45) | string : uploader's userID,
+ *              path | VARCHAR(45) |  : path to image,
+ *              timestamp | timestamp
+ *          }
+ */
 router.get('/pictures', (req, res) => {
-    let query = "";
-    
+    let query = "SELECT * FROM pictures WHERE";
     conn.query(query);
-    res.send("balls")
+    res.send("balls");
 })
 
 router.post('/addPicture', (req, res) => {
