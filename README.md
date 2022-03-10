@@ -1,6 +1,6 @@
 # API for CSH IOTW site
 
-You must make a .env file in the root directory formatted as such:
+Duplicate the '.envtemplate' file and rename it to '.env', then fill in the necessary env-vars.
 ```
 host="<db host>"
 user="<mysql username>"
