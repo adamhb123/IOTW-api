@@ -1,13 +1,13 @@
 require('dotenv').config();
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 const mysql = require('mysql2');
 
 //mysql connection
 const conn = mysql.createConnection({
-    host: process.env.host,
-    user: process.env.user,
-    password: process.env.password,
+    host: process.env.mysql_host,
+    user: process.env.mysql_user,
+    password: process.env.mysql_password,
     database: "iotw"
 });
 
