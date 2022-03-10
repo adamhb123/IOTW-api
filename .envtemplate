@@ -1,3 +1,3 @@
-mysql_host="localhost"
-mysql_user="adam"
-mysql_password="feiajfofea"
+mysql_host="<mysql host>"
+mysql_user="<mysql user>"
+mysql_password="<mysql password>"
