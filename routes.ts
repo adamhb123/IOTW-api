@@ -1,7 +1,8 @@
-const router = require('express').Router();
-const mysql = require('mysql2');
+import express, {Request, Response} from 'express';
+import mysql = require('mysql2');
 
-//mysql connection
+const router = express.Router();
+
 const conn = mysql.createConnection({
     host: process.env.iotw_mysql_host,
     user: process.env.iotw_mysql_user,
@@ -27,7 +28,7 @@ e.g. within certain time range, within certain upvote range, etc.
  *          0: Newest to oldest
  *          1: Oldest to newest  
  * RETURN: A set of JSON objects, each representing a single image,
- *         constructed as follows 
+ *         constructed as follows
  *         FORMAT: varname | type in db | type in json : description
  *         {
  *              userID | VARCHAR(45) | string : uploader's userID,
@@ -35,21 +36,28 @@ e.g. within certain time range, within certain upvote range, etc.
  *              timestamp | timestamp
  *          }
  */
-router.get('/pictures', (req, res) => {
+router.get('/pictures', (res: Response) => {
     let query = "SELECT * FROM pictures WHERE";
     conn.query(query);
-    res.send("balls");
+    res.send("balls")
 })
 
-router.post('/addPicture', (req, res) => {
+router.post('/upload-picture', (req: Request) => {
+    //first, grab highest ID to know what to set path to.
+    conn.query('SELECT MAX(ID) AS maxID from pictures', (err, rows) => {
+        if(err) throw err;
+        console.log(rows);
+    });
+});
+
+router.post('/upload-picture', (req: Request) => {
     //first, grab highest ID to know what to set path to.
     let query = "SELECT MAX(ID) AS maxID from pictures";
-    conn.query(query, (err, res)  => {
+    conn.query(query, (res: )  => {
         let highestID = res[0].maxID ?? 0;
-        query = `INSERT INTO pictures (path, userID, upvotes, downvotes, name)
-             VALUES ('/images/${highestID+1}, ${req.body.userID}, 0, 0, ${req.body.name}}`;
-        conn.query(query, (err, res) => {    
-        })
+        let query = `INSERT INTO pictures (path, userID, upvotes, downvotes, name)
+             VALUES ('/images/${highestID+1}, ${req.body.userID}, 0, 0, ${req.body.name}`;
+        conn.query(query, (err, results) => {    
         try {
             if(!req.files) {
                 res.send({

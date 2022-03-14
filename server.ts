@@ -1,10 +1,11 @@
 require('dotenv').config();
 
-const express = require("express");
+import express = require('express');
+import bodyParser = require('body-parser');
+import cors = require('cors');
+import fileUpload = require('express-fileupload');
+
 const app = express();
-const bodyParser = require('body-parser');
-const cors = require('cors');
-const fileUpload = require('express-fileupload');
 
 const port = process.env.iotw_api_port;
 const path = __dirname; 
@@ -13,12 +14,10 @@ app.use(cors());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(fileUpload({
-  createParentPath: true
+    createParentPath: true
 }));
 app.use(require('./routes.ts'));
 
 app.listen(port, () => {
- console.log(`Server running on port ${port}`);
+    console.log(`Server running on port ${port}`);
 });
-
-module.exports = {express: express}
