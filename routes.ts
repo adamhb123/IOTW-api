@@ -39,10 +39,9 @@ e.g. within certain time range, within certain upvote range, etc.
 router.get('/pictures', (res: Response) => {
     let query = "SELECT * FROM pictures WHERE";
     conn.query(query);
-    res.send("balls")
 })
 
-router.post('/upload-picture', (req: Request) => {
+router.post('/upload', (req: Request) => {
     //first, grab highest ID to know what to set path to.
     conn.query('SELECT MAX(ID) AS maxID from pictures', (err, rows) => {
         if(err) throw err;
@@ -50,37 +49,39 @@ router.post('/upload-picture', (req: Request) => {
     });
 });
 
-router.post('/upload-picture', (req: Request) => {
+router.post('/upload', (req: Request) => {
     //first, grab highest ID to know what to set path to.
     let query = "SELECT MAX(ID) AS maxID from pictures";
-    conn.query(query, (res: )  => {
+    conn.query(query, (res: Response)  => {
         let highestID = res[0].maxID ?? 0;
         let query = `INSERT INTO pictures (path, userID, upvotes, downvotes, name)
              VALUES ('/images/${highestID+1}, ${req.body.userID}, 0, 0, ${req.body.name}`;
-        conn.query(query, (err, results) => {    
+        conn.query(query, (err, results) => {
         try {
-            if(!req.files) {
+            if(!req.body.files || !req.body.files.length) {
                 res.send({
                     status: false,
-                    message: 'No file uploaded'
+                    message: "No file uploaded"
                 });
             } else {
-                //Use the name of the input field to retrieve the uploaded file
-                let picture = req.files.picture;
-                
-                //Use the mv() method to place the file in upload directory (i.e. "uploads")
-                picture.mv('./images/' + picture.name);
-    
-                //send response
-                res.send({
-                    status: true,
-                    message: 'picture successfully added',
-                    data: {
-                        name: picture.name,
-                        mimetype: picture.mimetype,
-                        size: picture.size
-                    }
-                });
+                for(const file of req.body.files) {
+                    // Use the name of the input field to retrieve the uploaded file
+                    let picture = file.picture;
+
+                    // Use the mv() method to place the file in upload directory (i.e. "uploads")
+                    picture.mv(`./images/${picture.name}`);
+
+                    // Send response
+                    res.send({
+                        status: true,
+                        message: "picture successfully added",
+                        data: {
+                            name: picture.name,
+                            mimetype: picture.mimetype,
+                            size: picture.size
+                        }
+                    });
+                }
             }
         } catch (err) {
             res.status(500).send(err);
