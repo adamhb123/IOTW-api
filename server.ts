@@ -1,11 +1,9 @@
-require("dotenv").config();
-
 import express from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import fileUpload from "express-fileupload";
-import Config from "./Config";
-
+import Config from "./config";
+console.log(Config.mysql.password);
 const app = express();
 
 const host = Config.server.host;
@@ -19,7 +17,7 @@ app.use(
     createParentPath: true,
   })
 );
-app.use(require("./Routes.ts"));
+app.use(require("./routes"));
 
 app.listen(port, host, () => {
   console.log(`Server running...\nAddress: ${host}:${port}`);
