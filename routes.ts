@@ -1,6 +1,6 @@
 // Global modules
-import fs from "fs";
-import express, { Request, Response } from "express";
+import fs, { Dir } from "fs";
+import express, { query, Request, Response } from "express";
 import { UploadedFile } from "express-fileupload";
 import path from "path";
 import fetch from "cross-fetch";
@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 // Local modules
 import * as Database from "./database";
 import Config from "./config";
+import Query from "mysql2/typings/mysql/lib/protocol/sequences/Query";
 
 const router = express.Router();
 
@@ -53,9 +54,75 @@ e.g. within certain time range, within certain upvote range, etc.
 
 */
 
+interface MediaResponseStructure {
+  uploaderID: string;
+  slackPrivateUrl: string;
+  updoots: number;
+  downdoots: number;
+}
+
+export enum SortedBy {
+  Updoots="updoots",
+  Downdoots="downdoots",
+  DootDifference="doot-difference",
+  Default="updoots"
+}
+
+export enum Direction {
+  Ascending="ascending",
+  Descending="descending",
+  Default="descending"
+}
+
+/*
+  !IMPORTANTE!
+  !IMPORTANTE!
+  !IMPORTANTE!
+  !IMPORTANTE!
+    It would have been likely more ideal to sort with SQL queries instead of locally.
+    If there are significant performance issues, I would look here first. 
+*/
+function sortMedia(media: MediaResponseStructure[], direction: Direction = Direction.Default, sortedBy: SortedBy = SortedBy.Default) {
+  //response data:
+  /*
+"data": [
+        {
+            "uploaderID": "U03665WAJF3",
+            "slackPrivateUrl": "https://files.slack.com/files-pri/T035TH82P19-F03HAQTKQ77/sparkleanim.gif",
+            "updoots": 0,
+            "downdoots": 0
+        }
+    ]
+  */
+  // sort with sorted by
+  const sorted = media.sort((a, b) => {
+    let comp_a, comp_b;
+    const dir = direction === Direction.Ascending ? 1 : -1;
+    if(sortedBy === SortedBy.Updoots) {
+      comp_a = a.updoots;
+      comp_b = b.updoots;
+    }
+    else if(sortedBy === SortedBy.Downdoots) {
+      comp_a = a.downdoots;
+      comp_b = b.downdoots;
+    }
+    else { // doot difference
+      comp_a = a.updoots - a.downdoots;
+      comp_b = b.updoots - b.downdoots;
+    }
+    return comp_a > comp_b ? dir : -dir;
+  });
+  return sorted;
+}
+
 router.get("/media", (req: Request, res: Response) => {
-  Database.getMedia().then((_media: any) => res
-  .send(ResponsePacket.asJSON(true, "success", _media)))
+  Database.getMedia().then((_media: MediaResponseStructure[]) => {
+    // Sorting appears to be fully functional!
+    const direction = <Direction>req.query.direction ?? Direction.Default;
+    const sortedBy = <SortedBy>req.query.sortedBy ?? SortedBy.Default;
+    const media = sortMedia(_media, direction, sortedBy);
+    res.send(ResponsePacket.asJSON(true, "success", media));
+  })
   .catch((err: any) => res.status(500).send(err));
 });
 
@@ -70,7 +137,6 @@ router.post("/upload", async (req: Request, res: Response) => {
     */
   try {
     let files = req.files || req.body.files;
-    console.log("files:", files);
     console.log(req.body);
     const userID = req.body.userID;
     if (!files || !userID) {
